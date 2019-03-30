@@ -1,0 +1,41 @@
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <script src="http://www.webglearth.com/v2/api.js"></script>
+    <script src="cities.js"></script>
+    <script>      
+      function initialize() {
+        var earth = new WE.map('earth_div');
+        WE.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(earth);
+        const options = {color: '#f00', opacity: 0.8, fillColor: '#000', fillOpacity: 0.1, weight: 2};
+        Object.values(cities)
+          .sort((cityListA, cityListB) => {
+            return cityListB.sort((cityA, cityB) => cityB.population - cityA.population)[0].population
+              - cityListA.sort((cityA, cityB) => cityB.population - cityA.population)[0].population
+          })
+          .filter((_, index) => index < 100)
+          .forEach((cityList) => {
+            cityList = cityList.sort((cityA, cityB) => cityB.population - cityA.population)
+            cityList.forEach((city, index) => {
+              const marker = WE.marker(city.pos).addTo(earth)
+              marker.bindPopup(`<b>${city.name}, population: ${city.population}</b>`)
+            })
+            const [center, ...rest] = cityList
+            const centerStar = rest.map(city => [center.pos, city.pos, center.pos]).reduce((acc, arr) => acc.concat(arr), [])
+            const poly = WE.polygon(centerStar, options).addTo(earth)
+          })
+      }
+    </script>
+    <style>
+      html, body{padding: 0; margin: 0;}
+      #earth_div{top: 0; right: 0; bottom: 0; left: 0; position: absolute !important;}
+    </style>
+    <title>WebGL Earth: Cities with the same name</title>
+  </head>
+  <body onload="initialize()">
+    <div id="earth_div"></div>
+  </body>
+</html>
